@@ -15,7 +15,7 @@ type userController struct {
 
 type UserController interface {
 	SignUp(ctx *gin.Context)
-	GetAll(ctx *gin.Context)
+	GetAllUsers(ctx *gin.Context)
 }
 
 func NewUserController(userS service.UserService) UserController {
@@ -42,7 +42,7 @@ func (userC *userController) SignUp(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, resp)
 }
 
-func (userC *userController) GetAll(ctx *gin.Context) {
+func (userC *userController) GetAllUsers(ctx *gin.Context) {
 
 	users, err := userC.userService.GetAllUsers(ctx)
 	if err != nil {
