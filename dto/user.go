@@ -8,7 +8,7 @@ type UserSignUpRequest struct {
 	Role     string `json:"role" binding:"required"`
 }
 
-type UserLoginRequest struct {
+type UserSignInRequest struct {
 	UserIdentifier string `json:"user-identifier" binding:"required"`
 	Password       string `json:"password" binding:"required"`
 }
