@@ -10,14 +10,14 @@ type Response struct {
 type EmptyObj struct {
 }
 
-func CreateResponse(msg string, statusCode uint, d any) Response {
-	if d == nil {
-		return Response{
-			IsSuccess: false, Message: msg, Status: statusCode, Data: nil,
-		}
-	} else {
-		return Response{
-			IsSuccess: true, Message: msg, Status: statusCode, Data: d,
-		}
+func CreateFailResponse(msg string, statusCode uint) Response {
+	return Response{
+		IsSuccess: false, Message: msg, Status: statusCode, Data: nil,
+	}
+}
+
+func CreateSuccessResponse(msg string, statusCode uint, d any) Response {
+	return Response{
+		IsSuccess: true, Message: msg, Status: statusCode, Data: d,
 	}
 }

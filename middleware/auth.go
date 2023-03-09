@@ -14,25 +14,25 @@ func Authenticate(jwtService service.JWTService, role string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			response := utils.CreateResponse("No token found", http.StatusUnauthorized, nil)
+			response := utils.CreateFailResponse("No token found", http.StatusUnauthorized)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
 			return
 		}
 		if !strings.Contains(authHeader, "Bearer ") {
-			response := utils.CreateResponse("No token found", http.StatusUnauthorized, nil)
+			response := utils.CreateFailResponse("No token found", http.StatusUnauthorized)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
 			return
 		}
 		authHeader = strings.Replace(authHeader, "Bearer ", "", -1)
 		token, err := jwtService.ValidateToken(authHeader)
 		if err != nil {
-			response := utils.CreateResponse("Invalid token", http.StatusUnauthorized, nil)
+			response := utils.CreateFailResponse("Invalid token", http.StatusUnauthorized)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
 			return
 		}
 
 		if !token.Valid {
-			response := utils.CreateResponse("Invalid token", http.StatusUnauthorized, nil)
+			response := utils.CreateFailResponse("Invalid token", http.StatusUnauthorized)
 			c.AbortWithStatusJSON(http.StatusForbidden, response)
 			return
 		}
@@ -41,7 +41,7 @@ func Authenticate(jwtService service.JWTService, role string) gin.HandlerFunc {
 		roleRes, err := jwtService.GetRoleByToken(string(authHeader))
 		fmt.Println("ROLE", roleRes)
 		if err != nil || (roleRes != "admin" && roleRes != role) {
-			response := utils.CreateResponse("Failed to process request", http.StatusUnauthorized, nil)
+			response := utils.CreateFailResponse("Failed to process request", http.StatusUnauthorized)
 			c.AbortWithStatusJSON(http.StatusForbidden, response)
 			return
 		}
@@ -49,7 +49,7 @@ func Authenticate(jwtService service.JWTService, role string) gin.HandlerFunc {
 		// get userID from token
 		idRes, err := jwtService.GetIDByToken(authHeader)
 		if err != nil {
-			response := utils.CreateResponse("Failed to process request", http.StatusUnauthorized, nil)
+			response := utils.CreateFailResponse("Failed to process request", http.StatusUnauthorized)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
 			return
 		}
