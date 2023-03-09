@@ -20,9 +20,8 @@ type UserRepository interface {
 
 	// functional
 	CreateNewUser(ctx context.Context, tx *gorm.DB, user entity.User) (entity.User, error)
-	FindByUsernameOrEmail(ctx context.Context, tx *gorm.DB, username string, email string) (entity.User, error)
-	GetAllUsers(ctx context.Context) ([]entity.User, error)
-	GetUserByUsername(ctx context.Context, username string) (entity.User, error)
+	GetUserByCredential(ctx context.Context, tx *gorm.DB, username string, email string) (entity.User, error)
+	GetAllUsers(ctx context.Context, tx *gorm.DB) ([]entity.User, error)
 }
 
 func NewUserRepository(db *gorm.DB) *userRepository {
@@ -64,7 +63,7 @@ func (userR *userRepository) CreateNewUser(ctx context.Context, tx *gorm.DB, use
 	return user, nil
 }
 
-func (userR *userRepository) FindByUsernameOrEmail(ctx context.Context, tx *gorm.DB, username string, email string) (entity.User, error) {
+func (userR *userRepository) GetUserByCredential(ctx context.Context, tx *gorm.DB, username string, email string) (entity.User, error) {
 	var err error
 	var user entity.User
 	if tx == nil {
@@ -80,22 +79,19 @@ func (userR *userRepository) FindByUsernameOrEmail(ctx context.Context, tx *gorm
 	return user, nil
 }
 
-func (userR *userRepository) GetAllUsers(ctx context.Context) ([]entity.User, error) {
+func (userR *userRepository) GetAllUsers(ctx context.Context, tx *gorm.DB) ([]entity.User, error) {
+	var err error
 	var users []entity.User
 
-	tx := userR.db.WithContext(ctx).Debug().Preload("Blogs").Preload("BlogLikes").Preload("CommentLikes").Find(&users)
-	if tx.Error != nil && !(errors.Is(tx.Error, gorm.ErrRecordNotFound)) {
-		return users, tx.Error
+	if tx == nil {
+		tx = userR.db.WithContext(ctx).Debug().Preload("Blogs").Preload("BlogLikes").Preload("CommentLikes").Find(&users)
+		err = tx.Error
+	} else {
+		err = tx.WithContext(ctx).Debug().Preload("Blogs").Preload("BlogLikes").Preload("CommentLikes").Find(&users).Error
+	}
+
+	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound)) {
+		return users, err
 	}
 	return users, nil
-}
-
-func (userR *userRepository) GetUserByUsername(ctx context.Context, username string) (entity.User, error) {
-	var user entity.User
-
-	tx := userR.db.WithContext(ctx).Debug().Where("username = $1", username).Preload("Blogs").Preload("BlogLikes").Preload("CommentLikes").Take(&user)
-	if tx.Error != nil && !(errors.Is(tx.Error, gorm.ErrRecordNotFound)) {
-		return user, tx.Error
-	}
-	return user, nil
 }

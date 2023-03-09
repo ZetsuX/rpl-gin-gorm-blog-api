@@ -31,7 +31,7 @@ func (userS *userService) CreateNewUser(ctx context.Context, userDTO dto.UserSig
 	copier.Copy(&user, &userDTO)
 
 	// Check for duplicate Username or Email
-	userCheck, err := userS.userRepository.FindByUsernameOrEmail(ctx, nil, userDTO.Username, userDTO.Email)
+	userCheck, err := userS.userRepository.GetUserByCredential(ctx, nil, userDTO.Username, userDTO.Email)
 	if err != nil {
 		return entity.User{}, err
 	}
@@ -54,7 +54,7 @@ func (userS *userService) CreateNewUser(ctx context.Context, userDTO dto.UserSig
 }
 
 func (userS *userService) GetAllUsers(ctx context.Context) ([]entity.User, error) {
-	users, err := userS.userRepository.GetAllUsers(ctx)
+	users, err := userS.userRepository.GetAllUsers(ctx, nil)
 	if err != nil {
 		return []entity.User{}, err
 	}
@@ -62,7 +62,7 @@ func (userS *userService) GetAllUsers(ctx context.Context) ([]entity.User, error
 }
 
 func (userS *userService) GetUserByUsername(ctx context.Context, username string) (entity.User, error) {
-	user, err := userS.userRepository.GetUserByUsername(ctx, username)
+	user, err := userS.userRepository.GetUserByCredential(ctx, nil, username, "")
 	if err != nil {
 		return entity.User{}, err
 	}
