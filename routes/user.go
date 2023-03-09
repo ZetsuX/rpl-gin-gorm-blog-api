@@ -2,18 +2,16 @@ package routes
 
 import (
 	"go-blogrpl/controller"
-	"go-blogrpl/middleware"
-	"go-blogrpl/service"
 
 	"github.com/gin-gonic/gin"
 )
 
 func UserRoutes(router *gin.Engine, userC controller.UserController) {
-	userAuthlessRoutes := router.Group("/users")
+	userRoutes := router.Group("/users")
 	{
-		userAuthlessRoutes.GET("/", middleware.Authenticate(service.NewJWTService(), "admin"), userC.GetAllUsers)
-		// userRoutes.GET("/:id", userController.Get)
-		userAuthlessRoutes.POST("/signup", userC.SignUp)
+		userRoutes.GET("/", userC.GetAllUsers)
+		userRoutes.GET("/:username", userC.GetUserByUsername)
+		userRoutes.POST("/signup", userC.SignUp)
 		// userRoutes.PUT("/:id", userController.Update)
 		// userRoutes.DELETE("/:id", userController.Delete)
 	}

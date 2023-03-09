@@ -22,6 +22,7 @@ type UserRepository interface {
 	CreateNewUser(ctx context.Context, tx *gorm.DB, user entity.User) (entity.User, error)
 	FindByUsernameOrEmail(ctx context.Context, tx *gorm.DB, username string, email string) (entity.User, error)
 	GetAllUsers(ctx context.Context) ([]entity.User, error)
+	GetUserByUsername(ctx context.Context, username string) (entity.User, error)
 }
 
 func NewUserRepository(db *gorm.DB) *userRepository {
@@ -74,7 +75,7 @@ func (userR *userRepository) FindByUsernameOrEmail(ctx context.Context, tx *gorm
 	}
 
 	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound)) {
-		return entity.User{}, err
+		return user, err
 	}
 	return user, nil
 }
@@ -83,8 +84,18 @@ func (userR *userRepository) GetAllUsers(ctx context.Context) ([]entity.User, er
 	var users []entity.User
 
 	tx := userR.db.WithContext(ctx).Debug().Preload("Blogs").Preload("BlogLikes").Preload("CommentLikes").Find(&users)
-	if tx.Error != nil {
-		return []entity.User{}, tx.Error
+	if tx.Error != nil && !(errors.Is(tx.Error, gorm.ErrRecordNotFound)) {
+		return users, tx.Error
 	}
 	return users, nil
+}
+
+func (userR *userRepository) GetUserByUsername(ctx context.Context, username string) (entity.User, error) {
+	var user entity.User
+
+	tx := userR.db.WithContext(ctx).Debug().Where("username = $1", username).Preload("Blogs").Preload("BlogLikes").Preload("CommentLikes").Take(&user)
+	if tx.Error != nil && !(errors.Is(tx.Error, gorm.ErrRecordNotFound)) {
+		return user, tx.Error
+	}
+	return user, nil
 }

@@ -18,6 +18,7 @@ type userService struct {
 type UserService interface {
 	CreateNewUser(ctx context.Context, userDTO dto.UserSignUpRequest) (entity.User, error)
 	GetAllUsers(ctx context.Context) ([]entity.User, error)
+	GetUserByUsername(ctx context.Context, username string) (entity.User, error)
 }
 
 func NewUserService(userR repository.UserRepository) UserService {
@@ -58,4 +59,12 @@ func (userS *userService) GetAllUsers(ctx context.Context) ([]entity.User, error
 		return []entity.User{}, err
 	}
 	return users, nil
+}
+
+func (userS *userService) GetUserByUsername(ctx context.Context, username string) (entity.User, error) {
+	user, err := userS.userRepository.GetUserByUsername(ctx, username)
+	if err != nil {
+		return entity.User{}, err
+	}
+	return user, nil
 }
