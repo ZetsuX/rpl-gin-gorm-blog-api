@@ -13,16 +13,21 @@ import (
 
 type userController struct {
 	userService service.UserService
+	jwtService  service.JWTService
 }
 
 type UserController interface {
 	SignUp(ctx *gin.Context)
+	SignIn(ctx *gin.Context)
 	GetAllUsers(ctx *gin.Context)
 	GetUserByUsername(ctx *gin.Context)
 }
 
-func NewUserController(userS service.UserService) UserController {
-	return &userController{userService: userS}
+func NewUserController(userS service.UserService, jwtS service.JWTService) UserController {
+	return &userController{
+		userService: userS,
+		jwtService:  jwtS,
+	}
 }
 
 func (userC *userController) SignUp(ctx *gin.Context) {
@@ -43,6 +48,35 @@ func (userC *userController) SignUp(ctx *gin.Context) {
 
 	resp := utils.CreateSuccessResponse("user signed up successfully", http.StatusCreated, newUser)
 	ctx.JSON(http.StatusCreated, resp)
+}
+
+func (userC *userController) SignIn(ctx *gin.Context) {
+	var userDTO dto.UserSignInRequest
+	err := ctx.ShouldBind(&userDTO)
+	if err != nil {
+		resp := utils.CreateFailResponse("Failed to process user sign in request", http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	res := userC.userService.VerifySignIn(ctx.Request.Context(), userDTO.UserIdentifier, userDTO.Password)
+	if !res {
+		response := utils.CreateFailResponse("Entered credentials invalid", http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
+		return
+	}
+
+	user, err := userC.userService.GetUserByIdentifier(ctx.Request.Context(), userDTO.UserIdentifier)
+	if err != nil {
+		response := utils.CreateFailResponse("Failed to process user sign in request", http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	}
+
+	token := userC.jwtService.GenerateToken(user.ID, user.Role)
+	authResp := utils.CreateAuthResponse(token, user.Role)
+	resp := utils.CreateSuccessResponse("successfully signed in user", http.StatusOK, authResp)
+	ctx.JSON(http.StatusOK, resp)
 }
 
 func (userC *userController) GetAllUsers(ctx *gin.Context) {

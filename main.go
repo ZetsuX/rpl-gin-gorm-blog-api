@@ -30,9 +30,10 @@ func main() {
 
 	// Setting Up Services
 	userS := service.NewUserService(userR)
+	jwtS := service.NewJWTService()
 
 	// Setting Up Controllers
-	userC := controller.NewUserController(userS)
+	userC := controller.NewUserController(userS, jwtS)
 
 	defer config.DBClose(db)
 

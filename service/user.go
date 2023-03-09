@@ -6,6 +6,7 @@ import (
 	"go-blogrpl/dto"
 	"go-blogrpl/entity"
 	"go-blogrpl/repository"
+	"go-blogrpl/utils"
 	"reflect"
 
 	"github.com/jinzhu/copier"
@@ -16,13 +17,31 @@ type userService struct {
 }
 
 type UserService interface {
+	VerifySignIn(ctx context.Context, identifier string, password string) bool
 	CreateNewUser(ctx context.Context, userDTO dto.UserSignUpRequest) (entity.User, error)
 	GetAllUsers(ctx context.Context) ([]entity.User, error)
+	GetUserByIdentifier(ctx context.Context, identifier string) (entity.User, error)
 	GetUserByUsername(ctx context.Context, username string) (entity.User, error)
 }
 
 func NewUserService(userR repository.UserRepository) UserService {
 	return &userService{userRepository: userR}
+}
+
+func (userS *userService) VerifySignIn(ctx context.Context, identifier string, password string) bool {
+	userCheck, err := userS.userRepository.GetUserByIdentifier(ctx, nil, identifier, identifier)
+	if err != nil {
+		return false
+	}
+	passwordCheck, err := utils.PasswordCompare(userCheck.Password, []byte(password))
+	if err != nil {
+		return false
+	}
+
+	if (userCheck.Username == identifier || userCheck.Email == identifier) && passwordCheck {
+		return true
+	}
+	return false
 }
 
 func (userS *userService) CreateNewUser(ctx context.Context, userDTO dto.UserSignUpRequest) (entity.User, error) {
@@ -31,7 +50,7 @@ func (userS *userService) CreateNewUser(ctx context.Context, userDTO dto.UserSig
 	copier.Copy(&user, &userDTO)
 
 	// Check for duplicate Username or Email
-	userCheck, err := userS.userRepository.GetUserByCredential(ctx, nil, userDTO.Username, userDTO.Email)
+	userCheck, err := userS.userRepository.GetUserByIdentifier(ctx, nil, userDTO.Username, userDTO.Email)
 	if err != nil {
 		return entity.User{}, err
 	}
@@ -61,8 +80,16 @@ func (userS *userService) GetAllUsers(ctx context.Context) ([]entity.User, error
 	return users, nil
 }
 
+func (userS *userService) GetUserByIdentifier(ctx context.Context, identifier string) (entity.User, error) {
+	user, err := userS.userRepository.GetUserByIdentifier(ctx, nil, identifier, identifier)
+	if err != nil {
+		return entity.User{}, err
+	}
+	return user, nil
+}
+
 func (userS *userService) GetUserByUsername(ctx context.Context, username string) (entity.User, error) {
-	user, err := userS.userRepository.GetUserByCredential(ctx, nil, username, "")
+	user, err := userS.userRepository.GetUserByIdentifier(ctx, nil, username, "")
 	if err != nil {
 		return entity.User{}, err
 	}

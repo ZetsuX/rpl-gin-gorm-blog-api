@@ -20,7 +20,7 @@ type UserRepository interface {
 
 	// functional
 	CreateNewUser(ctx context.Context, tx *gorm.DB, user entity.User) (entity.User, error)
-	GetUserByCredential(ctx context.Context, tx *gorm.DB, username string, email string) (entity.User, error)
+	GetUserByIdentifier(ctx context.Context, tx *gorm.DB, username string, email string) (entity.User, error)
 	GetAllUsers(ctx context.Context, tx *gorm.DB) ([]entity.User, error)
 }
 
@@ -63,7 +63,7 @@ func (userR *userRepository) CreateNewUser(ctx context.Context, tx *gorm.DB, use
 	return user, nil
 }
 
-func (userR *userRepository) GetUserByCredential(ctx context.Context, tx *gorm.DB, username string, email string) (entity.User, error) {
+func (userR *userRepository) GetUserByIdentifier(ctx context.Context, tx *gorm.DB, username string, email string) (entity.User, error) {
 	var err error
 	var user entity.User
 	if tx == nil {

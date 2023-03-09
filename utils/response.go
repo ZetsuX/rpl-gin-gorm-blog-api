@@ -7,6 +7,11 @@ type Response struct {
 	Data      any    `json:"data"`
 }
 
+type AuthResponse struct {
+	Token string `json:"token"`
+	Role  string `json:"role"`
+}
+
 type EmptyObj struct {
 }
 
@@ -19,5 +24,11 @@ func CreateFailResponse(msg string, statusCode uint) Response {
 func CreateSuccessResponse(msg string, statusCode uint, d any) Response {
 	return Response{
 		IsSuccess: true, Message: msg, Status: statusCode, Data: d,
+	}
+}
+
+func CreateAuthResponse(token string, role string) AuthResponse {
+	return AuthResponse{
+		Token: token, Role: role,
 	}
 }
