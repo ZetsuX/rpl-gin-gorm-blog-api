@@ -21,6 +21,8 @@ type UserController interface {
 	SignIn(ctx *gin.Context)
 	GetAllUsers(ctx *gin.Context)
 	GetUserByUsername(ctx *gin.Context)
+	UpdateSelfName(ctx *gin.Context)
+	DeleteSelfUser(ctx *gin.Context)
 }
 
 func NewUserController(userS service.UserService, jwtS service.JWTService) UserController {
@@ -111,5 +113,44 @@ func (userC *userController) GetUserByUsername(ctx *gin.Context) {
 	} else {
 		resp = utils.CreateSuccessResponse("successfully fetched user", http.StatusOK, user)
 	}
+	ctx.JSON(http.StatusOK, resp)
+}
+
+func (userC *userController) UpdateSelfName(ctx *gin.Context) {
+	var userDTO dto.UserNameUpdateRequest
+	err := ctx.ShouldBind(&userDTO)
+	if err != nil {
+		resp := utils.CreateFailResponse("Failed to process user name update request", http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	id := ctx.GetUint64("ID")
+	user, err := userC.userService.UpdateSelfName(ctx, userDTO, id)
+	if err != nil {
+		resp := utils.CreateFailResponse(err.Error(), http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	var resp utils.Response
+	if reflect.DeepEqual(user, entity.User{}) {
+		resp = utils.CreateSuccessResponse("user not found", http.StatusOK, nil)
+	} else {
+		resp = utils.CreateSuccessResponse("successfully updated user", http.StatusOK, user)
+	}
+	ctx.JSON(http.StatusOK, resp)
+}
+
+func (userC *userController) DeleteSelfUser(ctx *gin.Context) {
+	id := ctx.GetUint64("ID")
+	err := userC.userService.DeleteSelfUser(ctx, id)
+	if err != nil {
+		resp := utils.CreateFailResponse(err.Error(), http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	resp := utils.CreateSuccessResponse("successfully deleted user", http.StatusOK, nil)
 	ctx.JSON(http.StatusOK, resp)
 }

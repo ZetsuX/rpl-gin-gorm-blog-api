@@ -14,9 +14,9 @@ func UserRoutes(router *gin.Engine, userC controller.UserController) {
 		//, middleware.Authenticate(service.NewJWTService(), "admin")
 		userRoutes.GET("/", middleware.Authenticate(service.NewJWTService(), "admin"), userC.GetAllUsers)
 		userRoutes.GET("/:username", middleware.Authenticate(service.NewJWTService(), "user"), userC.GetUserByUsername)
+		userRoutes.PUT("/self/name", middleware.Authenticate(service.NewJWTService(), "user"), userC.UpdateSelfName)
+		userRoutes.DELETE("/self", middleware.Authenticate(service.NewJWTService(), "user"), userC.DeleteSelfUser)
 		userRoutes.POST("/signup", userC.SignUp)
 		userRoutes.POST("/signin", userC.SignIn)
-		// userRoutes.PUT("/:id", userController.Update)
-		// userRoutes.DELETE("/:id", userController.Delete)
 	}
 }

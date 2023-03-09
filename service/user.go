@@ -22,6 +22,8 @@ type UserService interface {
 	GetAllUsers(ctx context.Context) ([]entity.User, error)
 	GetUserByIdentifier(ctx context.Context, identifier string) (entity.User, error)
 	GetUserByUsername(ctx context.Context, username string) (entity.User, error)
+	UpdateSelfName(ctx context.Context, userDTO dto.UserNameUpdateRequest, id uint64) (entity.User, error)
+	DeleteSelfUser(ctx context.Context, id uint64) error
 }
 
 func NewUserService(userR repository.UserRepository) UserService {
@@ -94,4 +96,25 @@ func (userS *userService) GetUserByUsername(ctx context.Context, username string
 		return entity.User{}, err
 	}
 	return user, nil
+}
+
+func (userS *userService) UpdateSelfName(ctx context.Context, userDTO dto.UserNameUpdateRequest, id uint64) (entity.User, error) {
+	user, err := userS.userRepository.GetUserByID(ctx, nil, id)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	user, err = userS.userRepository.UpdateNameUser(ctx, nil, userDTO.Name, user)
+	if err != nil {
+		return entity.User{}, err
+	}
+	return user, nil
+}
+
+func (userS *userService) DeleteSelfUser(ctx context.Context, id uint64) error {
+	err := userS.userRepository.DeleteUserByID(ctx, nil, id)
+	if err != nil {
+		return err
+	}
+	return nil
 }

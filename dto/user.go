@@ -12,3 +12,7 @@ type UserSignInRequest struct {
 	UserIdentifier string `json:"user-identifier" binding:"required"`
 	Password       string `json:"password" binding:"required"`
 }
+
+type UserNameUpdateRequest struct {
+	Name string `json:"name" binding:"required"`
+}
