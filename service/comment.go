@@ -14,15 +14,20 @@ type commentService struct {
 }
 
 type CommentService interface {
-	// // Comments
-	// GetAllComments(ctx context.Context) ([]entity.Comment, error)
-
-	// BlogComments
+	GetAllComments(ctx context.Context) ([]entity.Comment, error)
 	CreateNewBlogComment(ctx context.Context, bcDTO dto.CommentRequest, blogId uint64, userId uint64) (entity.Comment, error)
 }
 
 func NewCommentService(commentR repository.CommentRepository) CommentService {
 	return &commentService{commentRepository: commentR}
+}
+
+func (commentS *commentService) GetAllComments(ctx context.Context) ([]entity.Comment, error) {
+	comments, err := commentS.commentRepository.GetAllComments(ctx, nil)
+	if err != nil {
+		return []entity.Comment{}, err
+	}
+	return comments, nil
 }
 
 func (commentS *commentService) CreateNewBlogComment(ctx context.Context, bcDTO dto.CommentRequest, blogId uint64, userId uint64) (entity.Comment, error) {

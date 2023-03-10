@@ -16,10 +16,7 @@ type commentController struct {
 }
 
 type CommentController interface {
-	// // Comments
-	// GetAllComments(ctx *gin.Context)
-
-	// BlogComments
+	GetAllComments(ctx *gin.Context)
 	PostCommentForBlog(ctx *gin.Context)
 }
 
@@ -28,6 +25,23 @@ func NewCommentController(commentS service.CommentService, jwtS service.JWTServi
 		commentService: commentS,
 		jwtService:     jwtS,
 	}
+}
+
+func (commentC *commentController) GetAllComments(ctx *gin.Context) {
+	comments, err := commentC.commentService.GetAllComments(ctx)
+	if err != nil {
+		resp := utils.CreateFailResponse("Failed to fetch all comments", http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	var resp utils.Response
+	if len(comments) == 0 {
+		resp = utils.CreateSuccessResponse("no comment found", http.StatusOK, comments)
+	} else {
+		resp = utils.CreateSuccessResponse("successfully fetched all comments", http.StatusOK, comments)
+	}
+	ctx.JSON(http.StatusOK, resp)
 }
 
 func (commentC *commentController) PostCommentForBlog(ctx *gin.Context) {

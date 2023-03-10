@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"go-blogrpl/entity"
 
 	"gorm.io/gorm"
@@ -17,10 +18,8 @@ type CommentRepository interface {
 	CommitTx(ctx context.Context, tx *gorm.DB) error
 	RollbackTx(ctx context.Context, tx *gorm.DB)
 
-	// // Comments functional
-	// GetAllComments(ctx context.Context, tx *gorm.DB) ([]entity.Comment, error)
-
-	// BlogComments functional
+	// functional
+	GetAllComments(ctx context.Context, tx *gorm.DB) ([]entity.Comment, error)
 	CreateNewBlogComment(ctx context.Context, tx *gorm.DB, comment entity.Comment) (entity.Comment, error)
 }
 
@@ -46,6 +45,23 @@ func (commentR *commentRepository) CommitTx(ctx context.Context, tx *gorm.DB) er
 
 func (commentR *commentRepository) RollbackTx(ctx context.Context, tx *gorm.DB) {
 	tx.WithContext(ctx).Debug().Rollback()
+}
+
+func (commentR *commentRepository) GetAllComments(ctx context.Context, tx *gorm.DB) ([]entity.Comment, error) {
+	var err error
+	var comments []entity.Comment
+
+	if tx == nil {
+		tx = commentR.db.WithContext(ctx).Debug().Preload("Likes").Find(&comments)
+		err = tx.Error
+	} else {
+		err = tx.WithContext(ctx).Debug().Preload("Likes").Find(&comments).Error
+	}
+
+	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound)) {
+		return comments, err
+	}
+	return comments, nil
 }
 
 func (commentR *commentRepository) CreateNewBlogComment(ctx context.Context, tx *gorm.DB, comment entity.Comment) (entity.Comment, error) {
