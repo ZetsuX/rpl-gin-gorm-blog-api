@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"go-blogrpl/dto"
 	"go-blogrpl/service"
 	"go-blogrpl/utils"
 	"net/http"
@@ -15,6 +16,7 @@ type blogController struct {
 
 type BlogController interface {
 	GetAllBlogs(ctx *gin.Context)
+	PostBlog(ctx *gin.Context)
 }
 
 func NewBlogController(blogS service.BlogService, jwtS service.JWTService) BlogController {
@@ -39,4 +41,25 @@ func (blogC *blogController) GetAllBlogs(ctx *gin.Context) {
 		resp = utils.CreateSuccessResponse("successfully fetched all blogs", http.StatusOK, blogs)
 	}
 	ctx.JSON(http.StatusOK, resp)
+}
+
+func (blogC *blogController) PostBlog(ctx *gin.Context) {
+	var blogDTO dto.BlogPostRequest
+	err := ctx.ShouldBind(&blogDTO)
+	if err != nil {
+		resp := utils.CreateFailResponse("Failed to process blog post request", http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	id := ctx.GetUint64("ID")
+	newBlog, err := blogC.blogService.CreateNewBlog(ctx, blogDTO, id)
+	if err != nil {
+		resp := utils.CreateFailResponse(err.Error(), http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	resp := utils.CreateSuccessResponse("blog posted successfully", http.StatusCreated, newBlog)
+	ctx.JSON(http.StatusCreated, resp)
 }
