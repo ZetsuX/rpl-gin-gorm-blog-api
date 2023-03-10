@@ -18,6 +18,7 @@ type LikeController interface {
 	GetAllBlogLikes(ctx *gin.Context)
 
 	// CommentLikes
+	GetAllCommentLikes(ctx *gin.Context)
 }
 
 func NewLikeController(likeS service.LikeService, jwtS service.JWTService) LikeController {
@@ -40,6 +41,23 @@ func (likeC *likeController) GetAllBlogLikes(ctx *gin.Context) {
 		resp = utils.CreateSuccessResponse("no blog like found", http.StatusOK, likes)
 	} else {
 		resp = utils.CreateSuccessResponse("successfully fetched all blog likes", http.StatusOK, likes)
+	}
+	ctx.JSON(http.StatusOK, resp)
+}
+
+func (likeC *likeController) GetAllCommentLikes(ctx *gin.Context) {
+	likes, err := likeC.likeService.GetAllCommentLikes(ctx)
+	if err != nil {
+		resp := utils.CreateFailResponse("Failed to fetch all comment likes", http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	var resp utils.Response
+	if len(likes) == 0 {
+		resp = utils.CreateSuccessResponse("no comment like found", http.StatusOK, likes)
+	} else {
+		resp = utils.CreateSuccessResponse("successfully fetched all comment likes", http.StatusOK, likes)
 	}
 	ctx.JSON(http.StatusOK, resp)
 }

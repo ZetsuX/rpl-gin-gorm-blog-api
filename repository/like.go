@@ -22,6 +22,7 @@ type LikeRepository interface {
 	GetAllBlogLikes(ctx context.Context, tx *gorm.DB) ([]entity.BlogLike, error)
 
 	// CommentLike functional
+	GetAllCommentLikes(ctx context.Context, tx *gorm.DB) ([]entity.CommentLike, error)
 }
 
 func NewLikeRepository(db *gorm.DB) *likeRepository {
@@ -53,14 +54,31 @@ func (likeR *likeRepository) GetAllBlogLikes(ctx context.Context, tx *gorm.DB) (
 	var blikes []entity.BlogLike
 
 	if tx == nil {
-		tx = likeR.db.WithContext(ctx).Debug().Preload("Likes").Find(&blikes)
+		tx = likeR.db.WithContext(ctx).Debug().Preload("Users").Find(&blikes)
 		err = tx.Error
 	} else {
-		err = tx.WithContext(ctx).Debug().Preload("Likes").Find(&blikes).Error
+		err = tx.WithContext(ctx).Debug().Preload("Users").Find(&blikes).Error
 	}
 
 	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound)) {
 		return blikes, err
 	}
 	return blikes, nil
+}
+
+func (likeR *likeRepository) GetAllCommentLikes(ctx context.Context, tx *gorm.DB) ([]entity.CommentLike, error) {
+	var err error
+	var clikes []entity.CommentLike
+
+	if tx == nil {
+		tx = likeR.db.WithContext(ctx).Debug().Preload("Users").Find(&clikes)
+		err = tx.Error
+	} else {
+		err = tx.WithContext(ctx).Debug().Preload("Users").Find(&clikes).Error
+	}
+
+	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound)) {
+		return clikes, err
+	}
+	return clikes, nil
 }
