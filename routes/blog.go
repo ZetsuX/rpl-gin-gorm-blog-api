@@ -13,6 +13,7 @@ func BlogRoutes(router *gin.Engine, blogC controller.BlogController) {
 	{
 		// //, middleware.Authenticate(service.NewJWTService(), "admin")
 		blogRoutes.GET("/", blogC.GetAllBlogs)
+		blogRoutes.GET("/:slug", blogC.GetBlogBySlug)
 		blogRoutes.POST("/", middleware.Authenticate(service.NewJWTService(), "user"), blogC.PostBlog)
 		// blogRoutes.GET("/:blogname", middleware.Authenticate(service.NewJWTService(), "blog"), blogC.GetblogByblogname)
 		// blogRoutes.PUT("/self/name", middleware.Authenticate(service.NewJWTService(), "blog"), blogC.UpdateSelfName)

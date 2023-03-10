@@ -17,6 +17,7 @@ type blogService struct {
 
 type BlogService interface {
 	GetAllBlogs(ctx context.Context) ([]entity.Blog, error)
+	GetBlogBySlug(ctx context.Context, slug string) (entity.Blog, error)
 	CreateNewBlog(ctx context.Context, blogDTO dto.BlogPostRequest, userId uint64) (entity.Blog, error)
 }
 
@@ -30,6 +31,14 @@ func (blogS *blogService) GetAllBlogs(ctx context.Context) ([]entity.Blog, error
 		return []entity.Blog{}, err
 	}
 	return blogs, nil
+}
+
+func (blogS *blogService) GetBlogBySlug(ctx context.Context, slug string) (entity.Blog, error) {
+	blog, err := blogS.blogRepository.GetBlogBySlug(ctx, nil, slug)
+	if err != nil {
+		return entity.Blog{}, err
+	}
+	return blog, nil
 }
 
 func (blogS *blogService) CreateNewBlog(ctx context.Context, blogDTO dto.BlogPostRequest, userId uint64) (entity.Blog, error) {
