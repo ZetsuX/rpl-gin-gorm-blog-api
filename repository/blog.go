@@ -68,10 +68,10 @@ func (blogR *blogRepository) GetAllBlogs(ctx context.Context, tx *gorm.DB) ([]en
 	var blogs []entity.Blog
 
 	if tx == nil {
-		tx = blogR.db.WithContext(ctx).Debug().Preload("Comments").Preload("Likes").Find(&blogs)
+		tx = blogR.db.WithContext(ctx).Debug().Preload("Likes").Find(&blogs)
 		err = tx.Error
 	} else {
-		err = tx.WithContext(ctx).Debug().Preload("Comments").Preload("Likes").Find(&blogs).Error
+		err = tx.WithContext(ctx).Debug().Preload("Likes").Find(&blogs).Error
 	}
 
 	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound)) {

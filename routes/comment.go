@@ -12,7 +12,6 @@ func CommentRoutes(router *gin.Engine, commentC controller.CommentController) {
 	commentRoutes := router.Group("/blog/comments")
 	{
 		commentRoutes.GET("/", middleware.Authenticate(service.NewJWTService(), "admin"), commentC.GetAllComments)
-		// commentRoutes.GET("/:blogid", middleware.Authenticate(service.NewJWTService(), "user"), commentC.GetBlogComment)
 		commentRoutes.POST("/:blogid", middleware.Authenticate(service.NewJWTService(), "user"), commentC.PostCommentForBlog)
 	}
 }
