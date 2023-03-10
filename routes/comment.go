@@ -9,9 +9,9 @@ import (
 )
 
 func CommentRoutes(router *gin.Engine, commentC controller.CommentController) {
-	commentRoutes := router.Group("/blog/comments")
+	commentRoutes := router.Group("/comments")
 	{
 		commentRoutes.GET("/", middleware.Authenticate(service.NewJWTService(), "admin"), commentC.GetAllComments)
-		commentRoutes.POST("/:blogid", middleware.Authenticate(service.NewJWTService(), "user"), commentC.PostCommentForBlog)
+		commentRoutes.POST("/blog/:blogid", middleware.Authenticate(service.NewJWTService(), "user"), commentC.PostCommentForBlog)
 	}
 }
