@@ -28,15 +28,18 @@ func main() {
 	// Setting Up Repositories
 	userR := repository.NewUserRepository(db)
 	blogR := repository.NewBlogRepository(db)
+	commentR := repository.NewCommentRepository(db)
 
 	// Setting Up Services
 	userS := service.NewUserService(userR)
 	blogS := service.NewBlogService(blogR)
+	commentS := service.NewCommentService(commentR)
 	jwtS := service.NewJWTService()
 
 	// Setting Up Controllers
 	userC := controller.NewUserController(userS, jwtS)
 	blogC := controller.NewBlogController(blogS, jwtS)
+	commentC := controller.NewCommentController(commentS, jwtS)
 
 	defer config.DBClose(db)
 
@@ -49,6 +52,7 @@ func main() {
 	// Setting Up Routes
 	routes.UserRoutes(server, userC)
 	routes.BlogRoutes(server, blogC)
+	routes.CommentRoutes(server, commentC)
 
 	// Running in localhost:8080
 	port := os.Getenv("PORT")
