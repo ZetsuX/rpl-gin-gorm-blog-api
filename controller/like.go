@@ -4,6 +4,7 @@ import (
 	"go-blogrpl/service"
 	"go-blogrpl/utils"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,6 +17,7 @@ type likeController struct {
 type LikeController interface {
 	// BlogLikes
 	GetAllBlogLikes(ctx *gin.Context)
+	ChangeLikeForBlog(ctx *gin.Context)
 
 	// CommentLikes
 	GetAllCommentLikes(ctx *gin.Context)
@@ -42,6 +44,26 @@ func (likeC *likeController) GetAllBlogLikes(ctx *gin.Context) {
 	} else {
 		resp = utils.CreateSuccessResponse("successfully fetched all blog likes", http.StatusOK, likes)
 	}
+	ctx.JSON(http.StatusOK, resp)
+}
+
+func (likeC *likeController) ChangeLikeForBlog(ctx *gin.Context) {
+	blogID, err := strconv.ParseUint(ctx.Param("blogid"), 10, 64)
+	if err != nil {
+		resp := utils.CreateFailResponse("Failed to process id of blog for like request", http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	userID := ctx.GetUint64("ID")
+	msg, err := likeC.likeService.ChangeLikeForBlog(ctx, blogID, userID)
+	if err != nil {
+		resp := utils.CreateFailResponse(err.Error(), http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	resp := utils.CreateSuccessResponse(msg, http.StatusOK, nil)
 	ctx.JSON(http.StatusOK, resp)
 }
 

@@ -9,6 +9,7 @@ type Blog struct {
 	Description string     `json:"description" binding:"required"`
 	Content     string     `json:"content" binding:"required"`
 	Comments    []Comment  `json:"comments,omitempty"`
+	LikeCount   int        `json:"like_count"`
 	Likes       []BlogLike `json:"likes,omitempty"`
 	UserID      uint64     `gorm:"foreignKey" json:"user_id" binding:"required"`
 	User        *User      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"user,omitempty"`

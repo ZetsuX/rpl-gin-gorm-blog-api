@@ -22,6 +22,7 @@ type BlogRepository interface {
 	CreateNewBlog(ctx context.Context, tx *gorm.DB, blog entity.Blog) (entity.Blog, error)
 	GetAllBlogs(ctx context.Context, tx *gorm.DB) ([]entity.Blog, error)
 	GetBlogBySlug(ctx context.Context, tx *gorm.DB, slug string) (entity.Blog, error)
+	GetBlogByID(ctx context.Context, tx *gorm.DB, id uint64) (entity.Blog, error)
 }
 
 func NewBlogRepository(db *gorm.DB) *blogRepository {
@@ -88,6 +89,22 @@ func (blogR *blogRepository) GetBlogBySlug(ctx context.Context, tx *gorm.DB, slu
 		err = tx.Error
 	} else {
 		err = tx.WithContext(ctx).Debug().Where("slug = $1", slug).Preload("Comments").Preload("Likes").Take(&blog).Error
+	}
+
+	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound)) {
+		return blog, err
+	}
+	return blog, nil
+}
+
+func (blogR *blogRepository) GetBlogByID(ctx context.Context, tx *gorm.DB, id uint64) (entity.Blog, error) {
+	var err error
+	var blog entity.Blog
+	if tx == nil {
+		tx = blogR.db.WithContext(ctx).Debug().Where("id = $1", id).Preload("Comments").Preload("Likes").Take(&blog)
+		err = tx.Error
+	} else {
+		err = tx.WithContext(ctx).Debug().Where("id = $1", id).Preload("Comments").Preload("Likes").Take(&blog).Error
 	}
 
 	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound)) {

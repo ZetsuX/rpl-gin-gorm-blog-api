@@ -14,8 +14,8 @@ type User struct {
 	Password     string        `json:"password" binding:"required"`
 	Role         string        `json:"role" binding:"required"`
 	Blogs        []Blog        `json:"blog,omitempty"`
-	BlogLikes    []BlogLike    `gorm:"many2many:users_bloglikes;" json:"bloglikes,omitempty"`
-	CommentLikes []CommentLike `gorm:"many2many:users_commentlikes;" json:"commentlikes,omitempty"`
+	BlogLikes    []BlogLike    `json:"bloglikes,omitempty"`
+	CommentLikes []CommentLike `json:"commentlikes,omitempty"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {
