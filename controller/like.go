@@ -58,7 +58,7 @@ func (likeC *likeController) ChangeLikeForBlog(ctx *gin.Context) {
 	userID := ctx.GetUint64("ID")
 	msg, err := likeC.likeService.ChangeLikeForBlog(ctx, blogID, userID)
 	if err != nil {
-		resp := utils.CreateFailResponse(err.Error(), http.StatusBadRequest)
+		resp := utils.CreateFailResponse("Failed to process like request", http.StatusBadRequest)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, resp)
 		return
 	}

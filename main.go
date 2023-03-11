@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	// API Documentation : https://documenter.getpostman.com/view/25087235/2s93CUJVem
+	// API Documentation : https://documenter.getpostman.com/view/25087235/2s93JtPiS7
 
 	err := godotenv.Load(".env")
 	if err != nil {
