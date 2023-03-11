@@ -18,6 +18,6 @@ func LikeRoutes(router *gin.Engine, likeC controller.LikeController) {
 	commentLikeRoutes := router.Group("/likes/comment")
 	{
 		commentLikeRoutes.GET("/", middleware.Authenticate(service.NewJWTService(), "admin"), likeC.GetAllCommentLikes)
-		// commentLikeRoutes.POST("/:commentid", middleware.Authenticate(service.NewJWTService(), "user"), likeC.AddLikeForComment)
+		commentLikeRoutes.POST("/:commentid", middleware.Authenticate(service.NewJWTService(), "user"), likeC.ChangeLikeForComment)
 	}
 }

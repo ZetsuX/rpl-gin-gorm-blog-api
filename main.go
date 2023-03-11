@@ -39,7 +39,7 @@ func main() {
 	blogS := service.NewBlogService(blogR)
 	commentS := service.NewCommentService(commentR)
 	jwtS := service.NewJWTService()
-	likeS := service.NewLikeService(likeR, blogR)
+	likeS := service.NewLikeService(likeR, blogR, commentR)
 
 	// Setting Up Controllers
 	userC := controller.NewUserController(userS, jwtS)

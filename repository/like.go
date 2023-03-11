@@ -20,7 +20,7 @@ type LikeRepository interface {
 
 	// BlogLike functional
 	GetAllBlogLikes(ctx context.Context, tx *gorm.DB) ([]entity.BlogLike, error)
-	GetBlogLikeByID(ctx context.Context, tx *gorm.DB, blID uint64) (entity.BlogLike, error)
+	GetBlogLikeByID(ctx context.Context, tx *gorm.DB, clID uint64) (entity.BlogLike, error)
 	CreateNewBlogLike(ctx context.Context, tx *gorm.DB, bl entity.BlogLike) (entity.BlogLike, error)
 	DeleteBlogLike(ctx context.Context, tx *gorm.DB, blID uint64) error
 	RestoreBlogLike(ctx context.Context, tx *gorm.DB, bl entity.BlogLike) (entity.BlogLike, error)
@@ -29,6 +29,12 @@ type LikeRepository interface {
 
 	// CommentLike functional
 	GetAllCommentLikes(ctx context.Context, tx *gorm.DB) ([]entity.CommentLike, error)
+	GetCommentLikeByID(ctx context.Context, tx *gorm.DB, clID uint64) (entity.CommentLike, error)
+	CreateNewCommentLike(ctx context.Context, tx *gorm.DB, cl entity.CommentLike) (entity.CommentLike, error)
+	DeleteCommentLike(ctx context.Context, tx *gorm.DB, clID uint64) error
+	RestoreCommentLike(ctx context.Context, tx *gorm.DB, cl entity.CommentLike) (entity.CommentLike, error)
+	CheckCommentLike(ctx context.Context, tx *gorm.DB, cl entity.CommentLike, blogId uint64, userId uint64) (int, entity.CommentLike, error)
+	SetCommentLikeCount(ctx context.Context, tx *gorm.DB, comment entity.Comment) error
 }
 
 func NewLikeRepository(db *gorm.DB) *likeRepository {
@@ -189,4 +195,106 @@ func (likeR *likeRepository) GetAllCommentLikes(ctx context.Context, tx *gorm.DB
 		return clikes, err
 	}
 	return clikes, nil
+}
+
+func (likeR *likeRepository) GetCommentLikeByID(ctx context.Context, tx *gorm.DB, clID uint64) (entity.CommentLike, error) {
+	var err error
+	var cl entity.CommentLike
+	if tx == nil {
+		tx = likeR.db.WithContext(ctx).Debug().Where("id = $1", clID).Take(&cl)
+		err = tx.Error
+	} else {
+		err = tx.WithContext(ctx).Debug().Where("id = $1", clID).Take(&cl).Error
+	}
+
+	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound)) {
+		return cl, err
+	}
+	return cl, nil
+}
+
+func (likeR *likeRepository) CreateNewCommentLike(ctx context.Context, tx *gorm.DB, cl entity.CommentLike) (entity.CommentLike, error) {
+	var err error
+	if tx == nil {
+		tx = likeR.db.WithContext(ctx).Debug().Create(&cl)
+		err = tx.Error
+	} else {
+		err = tx.WithContext(ctx).Debug().Create(&cl).Error
+	}
+
+	if err != nil {
+		return entity.CommentLike{}, err
+	}
+	return cl, nil
+}
+
+func (likeR *likeRepository) DeleteCommentLike(ctx context.Context, tx *gorm.DB, clID uint64) error {
+	var err error
+	if tx == nil {
+		tx = likeR.db.WithContext(ctx).Debug().Delete(&entity.CommentLike{}, clID)
+		err = tx.Error
+	} else {
+		err = tx.WithContext(ctx).Debug().Delete(&entity.CommentLike{}, clID).Error
+	}
+
+	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound)) {
+		return err
+	}
+	return nil
+}
+
+func (likeR *likeRepository) RestoreCommentLike(ctx context.Context, tx *gorm.DB, cl entity.CommentLike) (entity.CommentLike, error) {
+	var err error
+	clRestore := cl
+	clRestore.Model.DeletedAt = gorm.DeletedAt{}
+	if tx == nil {
+		tx = likeR.db.WithContext(ctx).Debug().Unscoped().Save(&clRestore)
+		err = tx.Error
+	} else {
+		err = tx.WithContext(ctx).Debug().Unscoped().Save(&clRestore).Error
+	}
+
+	if err != nil {
+		return clRestore, err
+	}
+	return clRestore, nil
+}
+
+func (likeR *likeRepository) CheckCommentLike(ctx context.Context, tx *gorm.DB, cl entity.CommentLike, commentId uint64, userId uint64) (int, entity.CommentLike, error) {
+	var clike entity.CommentLike
+	var err error
+
+	if tx == nil {
+		tx = likeR.db.WithContext(ctx).Debug().Unscoped().Where("comment_id = $1 AND user_id = $2", commentId, userId).Take(&clike)
+		err = tx.Error
+	} else {
+		err = tx.WithContext(ctx).Debug().Unscoped().Where("comment_id = $1 AND user_id = $2", commentId, userId).Take(&clike).Error
+	}
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 1, clike, nil
+		} else {
+			return -1, entity.CommentLike{}, err
+		}
+	} else {
+		return 2, clike, nil
+	}
+}
+
+func (likeR *likeRepository) SetCommentLikeCount(ctx context.Context, tx *gorm.DB, comment entity.Comment) error {
+	var err error
+	commentSet := comment
+	commentSet.LikeCount = len(commentSet.Likes)
+	if tx == nil {
+		tx = likeR.db.WithContext(ctx).Debug().Save(&commentSet)
+		err = tx.Error
+	} else {
+		err = tx.WithContext(ctx).Debug().Save(&commentSet).Error
+	}
+
+	if err != nil {
+		return err
+	}
+	return nil
 }

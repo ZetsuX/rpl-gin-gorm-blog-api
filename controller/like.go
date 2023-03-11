@@ -21,6 +21,7 @@ type LikeController interface {
 
 	// CommentLikes
 	GetAllCommentLikes(ctx *gin.Context)
+	ChangeLikeForComment(ctx *gin.Context)
 }
 
 func NewLikeController(likeS service.LikeService, jwtS service.JWTService) LikeController {
@@ -81,5 +82,25 @@ func (likeC *likeController) GetAllCommentLikes(ctx *gin.Context) {
 	} else {
 		resp = utils.CreateSuccessResponse("successfully fetched all comment likes", http.StatusOK, likes)
 	}
+	ctx.JSON(http.StatusOK, resp)
+}
+
+func (likeC *likeController) ChangeLikeForComment(ctx *gin.Context) {
+	commentID, err := strconv.ParseUint(ctx.Param("commentid"), 10, 64)
+	if err != nil {
+		resp := utils.CreateFailResponse("Failed to process id of comment for like request", http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	userID := ctx.GetUint64("ID")
+	msg, err := likeC.likeService.ChangeLikeForComment(ctx, commentID, userID)
+	if err != nil {
+		resp := utils.CreateFailResponse("Failed to process like request", http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	resp := utils.CreateSuccessResponse(msg, http.StatusOK, nil)
 	ctx.JSON(http.StatusOK, resp)
 }

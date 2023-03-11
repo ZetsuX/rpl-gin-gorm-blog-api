@@ -8,8 +8,9 @@ import (
 )
 
 type likeService struct {
-	likeRepository repository.LikeRepository
-	blogRepository repository.BlogRepository
+	likeRepository    repository.LikeRepository
+	blogRepository    repository.BlogRepository
+	commentRepository repository.CommentRepository
 }
 
 type LikeService interface {
@@ -19,10 +20,11 @@ type LikeService interface {
 
 	// CommentLikes
 	GetAllCommentLikes(ctx context.Context) ([]entity.CommentLike, error)
+	ChangeLikeForComment(ctx context.Context, commentId uint64, userId uint64) (string, error)
 }
 
-func NewLikeService(likeR repository.LikeRepository, blogR repository.BlogRepository) LikeService {
-	return &likeService{likeRepository: likeR, blogRepository: blogR}
+func NewLikeService(likeR repository.LikeRepository, blogR repository.BlogRepository, commentR repository.CommentRepository) LikeService {
+	return &likeService{likeRepository: likeR, blogRepository: blogR, commentRepository: commentR}
 }
 
 func (likeS *likeService) GetAllBlogLikes(ctx context.Context) ([]entity.BlogLike, error) {
@@ -94,4 +96,59 @@ func (likeS *likeService) GetAllCommentLikes(ctx context.Context) ([]entity.Comm
 		return []entity.CommentLike{}, err
 	}
 	return clikes, nil
+}
+
+func (likeS *likeService) ChangeLikeForComment(ctx context.Context, commentId uint64, userId uint64) (string, error) {
+	bl := entity.CommentLike{CommentID: commentId, UserID: userId}
+
+	status, blRes, err := likeS.likeRepository.CheckCommentLike(ctx, nil, bl, commentId, userId)
+	if err != nil {
+		return "failed posting like to comment", err
+	}
+
+	switch status {
+	case 1:
+		_, err = likeS.likeRepository.CreateNewCommentLike(ctx, nil, bl)
+	case 2:
+		check, _ := likeS.likeRepository.GetCommentLikeByID(ctx, nil, blRes.ID)
+
+		if reflect.DeepEqual(check, entity.CommentLike{}) {
+			_, err = likeS.likeRepository.RestoreCommentLike(ctx, nil, blRes)
+		} else {
+			err = likeS.likeRepository.DeleteCommentLike(ctx, nil, blRes.ID)
+			if err != nil {
+				return err.Error(), err
+			}
+
+			comment, err := likeS.commentRepository.GetCommentByID(ctx, nil, commentId)
+			if err != nil {
+				return err.Error(), err
+			}
+
+			err = likeS.likeRepository.SetCommentLikeCount(ctx, nil, comment)
+			if err != nil {
+				return err.Error(), err
+			}
+
+			return "successfully unliked comment", nil
+		}
+	default:
+		return "failed posting like to comment", err
+	}
+
+	if err != nil {
+		return err.Error(), err
+	}
+
+	comment, err := likeS.commentRepository.GetCommentByID(ctx, nil, commentId)
+	if err != nil {
+		return err.Error(), err
+	}
+
+	err = likeS.likeRepository.SetCommentLikeCount(ctx, nil, comment)
+	if err != nil {
+		return err.Error(), err
+	}
+
+	return "successfully liked comment", nil
 }

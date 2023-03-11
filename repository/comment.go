@@ -21,6 +21,7 @@ type CommentRepository interface {
 	// functional
 	GetAllComments(ctx context.Context, tx *gorm.DB) ([]entity.Comment, error)
 	CreateNewBlogComment(ctx context.Context, tx *gorm.DB, comment entity.Comment) (entity.Comment, error)
+	GetCommentByID(ctx context.Context, tx *gorm.DB, id uint64) (entity.Comment, error)
 }
 
 func NewCommentRepository(db *gorm.DB) *commentRepository {
@@ -75,6 +76,22 @@ func (commentR *commentRepository) CreateNewBlogComment(ctx context.Context, tx 
 
 	if err != nil {
 		return entity.Comment{}, err
+	}
+	return comment, nil
+}
+
+func (commentR *commentRepository) GetCommentByID(ctx context.Context, tx *gorm.DB, id uint64) (entity.Comment, error) {
+	var err error
+	var comment entity.Comment
+	if tx == nil {
+		tx = commentR.db.WithContext(ctx).Debug().Where("id = $1", id).Preload("Likes").Take(&comment)
+		err = tx.Error
+	} else {
+		err = tx.WithContext(ctx).Debug().Where("id = $1", id).Preload("Likes").Take(&comment).Error
+	}
+
+	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound)) {
+		return comment, err
 	}
 	return comment, nil
 }
