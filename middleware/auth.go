@@ -41,7 +41,7 @@ func Authenticate(jwtService service.JWTService, role string) gin.HandlerFunc {
 		roleRes, err := jwtService.GetRoleByToken(string(authHeader))
 		fmt.Println("ROLE", roleRes)
 		if err != nil || (roleRes != "admin" && roleRes != role) {
-			response := utils.CreateFailResponse("Failed to process request", http.StatusUnauthorized)
+			response := utils.CreateFailResponse("Action unauthorized", http.StatusUnauthorized)
 			c.AbortWithStatusJSON(http.StatusForbidden, response)
 			return
 		}

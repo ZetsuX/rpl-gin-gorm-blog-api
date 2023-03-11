@@ -77,8 +77,8 @@ func (j *jwtService) GetIDByToken(token string) (uint64, error) {
 	}
 	claims := t_Token.Claims.(jwt.MapClaims)
 	id := fmt.Sprintf("%v", claims["id"])
-	teamID, _ := strconv.ParseUint(id, 10, 64)
-	return teamID, nil
+	ID, _ := strconv.ParseUint(id, 10, 64)
+	return ID, nil
 }
 
 func (j *jwtService) GetRoleByToken(token string) (string, error) {
