@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 	"go-blogrpl/entity"
 
 	"gorm.io/gorm"
@@ -25,7 +24,7 @@ type LikeRepository interface {
 	CreateNewBlogLike(ctx context.Context, tx *gorm.DB, bl entity.BlogLike) (entity.BlogLike, error)
 	DeleteBlogLike(ctx context.Context, tx *gorm.DB, blID uint64) error
 	RestoreBlogLike(ctx context.Context, tx *gorm.DB, bl entity.BlogLike) (entity.BlogLike, error)
-	CheckBlogLike(ctx context.Context, tx *gorm.DB, bl entity.BlogLike, blogId uint64) (int, entity.BlogLike, error)
+	CheckBlogLike(ctx context.Context, tx *gorm.DB, bl entity.BlogLike, blogId uint64, userId uint64) (int, entity.BlogLike, error)
 	SetBlogLikeCount(ctx context.Context, tx *gorm.DB, blog entity.Blog) error
 
 	// CommentLike functional
@@ -136,15 +135,15 @@ func (likeR *likeRepository) RestoreBlogLike(ctx context.Context, tx *gorm.DB, b
 	return blRestore, nil
 }
 
-func (likeR *likeRepository) CheckBlogLike(ctx context.Context, tx *gorm.DB, bl entity.BlogLike, blogId uint64) (int, entity.BlogLike, error) {
+func (likeR *likeRepository) CheckBlogLike(ctx context.Context, tx *gorm.DB, bl entity.BlogLike, blogId uint64, userId uint64) (int, entity.BlogLike, error) {
 	var blike entity.BlogLike
 	var err error
 
 	if tx == nil {
-		tx = likeR.db.WithContext(ctx).Debug().Unscoped().Where("blog_id = $1", blogId).Take(&blike)
+		tx = likeR.db.WithContext(ctx).Debug().Unscoped().Where("blog_id = $1 AND user_id = $2", blogId, userId).Take(&blike)
 		err = tx.Error
 	} else {
-		err = tx.WithContext(ctx).Debug().Unscoped().Where("blog_id = $1", blogId).Take(&blike).Error
+		err = tx.WithContext(ctx).Debug().Unscoped().Where("blog_id = $1 AND user_id = $2", blogId, userId).Take(&blike).Error
 	}
 
 	if err != nil {
@@ -162,7 +161,6 @@ func (likeR *likeRepository) SetBlogLikeCount(ctx context.Context, tx *gorm.DB, 
 	var err error
 	blogSet := blog
 	blogSet.LikeCount = len(blogSet.Likes)
-	fmt.Println(blogSet.LikeCount)
 	if tx == nil {
 		tx = likeR.db.WithContext(ctx).Debug().Save(&blogSet)
 		err = tx.Error

@@ -36,7 +36,7 @@ func (likeS *likeService) GetAllBlogLikes(ctx context.Context) ([]entity.BlogLik
 func (likeS *likeService) ChangeLikeForBlog(ctx context.Context, blogId uint64, userId uint64) (string, error) {
 	bl := entity.BlogLike{BlogID: blogId, UserID: userId}
 
-	status, blRes, err := likeS.likeRepository.CheckBlogLike(ctx, nil, bl, blogId)
+	status, blRes, err := likeS.likeRepository.CheckBlogLike(ctx, nil, bl, blogId, userId)
 	if err != nil {
 		return "failed posting like to blog", err
 	}
@@ -55,7 +55,7 @@ func (likeS *likeService) ChangeLikeForBlog(ctx context.Context, blogId uint64, 
 				return err.Error(), err
 			}
 
-			blog, err := likeS.blogRepository.GetBlogByID(ctx, nil, blRes.BlogID)
+			blog, err := likeS.blogRepository.GetBlogByID(ctx, nil, blogId)
 			if err != nil {
 				return err.Error(), err
 			}
@@ -75,7 +75,7 @@ func (likeS *likeService) ChangeLikeForBlog(ctx context.Context, blogId uint64, 
 		return err.Error(), err
 	}
 
-	blog, err := likeS.blogRepository.GetBlogByID(ctx, nil, blRes.BlogID)
+	blog, err := likeS.blogRepository.GetBlogByID(ctx, nil, blogId)
 	if err != nil {
 		return err.Error(), err
 	}
@@ -85,7 +85,7 @@ func (likeS *likeService) ChangeLikeForBlog(ctx context.Context, blogId uint64, 
 		return err.Error(), err
 	}
 
-	return "successfully liked to blog", nil
+	return "successfully liked blog", nil
 }
 
 func (likeS *likeService) GetAllCommentLikes(ctx context.Context) ([]entity.CommentLike, error) {
