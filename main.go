@@ -1,13 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"go-blogrpl/config"
 	"go-blogrpl/controller"
 	"go-blogrpl/middleware"
 	"go-blogrpl/repository"
 	"go-blogrpl/routes"
 	"go-blogrpl/service"
-	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -17,9 +17,12 @@ import (
 func main() {
 	// API Documentation : https://documenter.getpostman.com/view/25087235/2s93JtPiS7
 
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Println(err)
+	if os.Getenv("APP_ENV") != "production" {
+		err := godotenv.Load(".env")
+		if err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
 	}
 
 	// Setting Up Database
