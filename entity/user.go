@@ -28,7 +28,7 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 }
 
 func (u *User) BeforeUpdate(tx *gorm.DB) error {
-	if u.Password != "" {
+	if u.Password != "" && tx.Statement.Changed("Password") {
 		var err error
 		u.Password, err = utils.PasswordHash(u.Password)
 		if err != nil {
