@@ -59,8 +59,6 @@ Project harus menggunakan clean architecture, memiliki dokumentasi, dan di deplo
 - I never tried Auth using Postman and therefore didn't understand at first how to utilize it. But after some trials and errors, I finally discovered the way to utilize Postman for Auth Features
 
 ## Things I Learned
-By doing this assignment, I've started learning more about Gin and GORM usage in programming using Golang even further outside the ones that I've already learned during the 3rd assignment.
-<br>
-The better and cleaner Clean Architecture that is implemented in this assignment also make me learn more about the architecture and it's benefit in making my codes more structured and readable.
-<br>
-Finally, I've also understood the way of using JWT Token Authentication and Authorization in Golang, especially in the Gin framework. Of course including the steps in testing the Authorization feature using Postman.
+- By focusing on this assignment, I've started learning more about Gin and GORM usage in programming using Golang even further outside the ones that I've already learned during the 3rd assignment.
+- The better and cleaner Clean Architecture that is implemented in this assignment also make me learn more about the architecture and it's benefit in making my codes more structured and readable.
+- Finally, I've also understood the way of using JWT Token Authentication and Authorization in Golang, especially in the Gin framework. Of course including the steps in testing the Authorization feature using Postman.
